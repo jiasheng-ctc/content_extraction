@@ -1,12 +1,14 @@
-from api.ocr_extractor import extract_text_from_pdf
-from api.bedrock_client import invoke_claude
+from rhubarb import DocAnalysis, Entities
 from models.model_params import model_params
+import boto3
 
 def process_pdf(file_path):
-    extracted_text = extract_text_from_pdf(file_path)
-    prompt = f"""Given the following document:
 
-    {extracted_text}
+    session = boto3.Session(region_name=model_params["region"])
+    da = DocAnalysis(file_path=file_path, boto3_session=session)
+    response = da.run_entity(
+        message="Extract the specified named entities from this document.",
+        entities=model_params["ner_entities"]
+    )
 
-    Extract key information such as names, date of signing, place of signing. Provide a structured response in JSON format."""
-    return invoke_claude(prompt, model_params)
+    return response
