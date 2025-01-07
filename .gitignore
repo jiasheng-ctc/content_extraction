@@ -1,0 +1,136 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+*.coverage
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+nosetests.xml
+coverage.xml
+*.log
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+*.pot
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Flask stuff:
+instance/
+.webassets-cache
+
+# Scrapy stuff:
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+target/
+
+# IPython Notebook
+*.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# Celery stuff
+celerybeat-schedule
+celerybeat.pid
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.env
+*.env
+*.env.*
+
+# IDEs and editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# MacOS-specific files
+.DS_Store
+
+# Windows-specific files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Logs and temp files
+*.log
+*.tmp
+*.bak
+*.old
+*.swp
+*.swo
+*.orig
+*.save
+*.~undo-tree~
+
+# MyPy cache
+.mypy_cache/
+dmypy.json
+dmypy.log
+
+# Bandit security scans
+.bandit/
+
+# Pyre type-checking
+.pyre/
+
+# Local project-specific files
+policy_enforcer/logs/

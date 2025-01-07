@@ -1,0 +1,6 @@
+region: us-east-1
+bedrock:
+  model_id: "anthropic.claude-3-sonnet:2025-01-01-v1"
+  max_tokens: 512
+  temperature: 0.5
+  top_p: 0.9

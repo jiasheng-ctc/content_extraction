@@ -1,0 +1,5 @@
+boto3
+pytesseract
+pdf2image
+python-dotenv
+pytest
