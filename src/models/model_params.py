@@ -6,6 +6,12 @@ model_params = {
     "max_tokens": 512,
     "temperature": 0.5,
     "top_p": 0.9,
-    "ner_entities": [Entities.PERSON, Entities.ADDRESS, Entities.DATE_TIME] 
+    "ner_entities": [
+        Entities.PERSON,       
+        Entities.DATE_TIME,    
+        Entities.ADDRESS,      
+        # Entities.CREDIT_DEBIT_NUMBER,       
+        Entities.TITLE,         
+        # Entities.QUANTITY
+    ]
 }
-
