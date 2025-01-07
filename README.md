@@ -30,3 +30,11 @@ This app processes scanned PDF files to extract structured information using the
 | **Named Entity Extraction** | Identifies critical details like names, dates, addresses, and loan-related numbers using Bedrock LLMs. |
 | **Summarization**           | Provides a concise summary of the document content.                                                    |
 | **Data Masking**            | Hides sensitive information like account numbers to ensure privacy.                                    |
+
+Here’s an example of the structured entity extraction output:
+
+![Example Output](assets/examples/image_entities.png)
+![Example Output](assets/examples/image_summary.png)
+![Example Output](assets/examples/image_masking.png)
+
+The image showcases how Rhubarb extracts details like names, dates, and other important entities, generate summaries and mask PII from scanned PDFs.
