@@ -3,3 +3,6 @@ pytesseract
 pdf2image
 python-dotenv
 pytest
+dash
+pyrhubarb
+dash_bootstrap_components

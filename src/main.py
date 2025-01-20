@@ -12,7 +12,7 @@ def main():
     logging.info("Processing the PDF file using Rhubarb...")
 
     try:
-        # Get results
+            # Get results
         results = process_pdf(pdf_path)
 
         # Log results
