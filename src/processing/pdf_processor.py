@@ -8,7 +8,7 @@ import boto3
 def process_pdf(file_path):
     session = boto3.Session(region_name=model_params["region"])
     doc_analysis = DocAnalysis(file_path=file_path, boto3_session=session,
-        modelId=LanguageModels.CLAUDE_HAIKU_V1)
+        modelId=model_params["model_id"])
 
     # Get the document summary
     summary_response = doc_analysis.run(
