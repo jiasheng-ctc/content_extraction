@@ -6,3 +6,4 @@ pytest
 dash
 pyrhubarb
 dash_bootstrap_components
+PyYAML
