@@ -9,8 +9,6 @@ __pycache__/
 # Distribution / packaging
 .Python
 env/
-temp_uploads/
-assets/
 venv/
 ENV/
 build/

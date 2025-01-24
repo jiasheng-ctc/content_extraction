@@ -38,16 +38,16 @@ header_style = {
 }
 
 hr_options = [
-    {'label': 'HR - Employee ID', 'value': 'hr_employee_id'},
-    {'label': 'HR - SOP ID', 'value': 'hr_sop_id'}
+    {'label': 'HR - Employee ID', 'value': 'employee_id'},
+    {'label': 'HR - SOP ID', 'value': 'SOP#'}
 ]
 finance_options = [
-    {'label': 'Finance - PO Number', 'value': 'finance_po_number'},
-    {'label': 'Finance - Contract Number', 'value': 'finance_contract_number'}
+    {'label': 'Finance - PO Number', 'value': 'PO No'},
+    {'label': 'Finance - Contract Number', 'value': 'Contract_No'}
 ]
 operation_options = [
-    {'label': 'Operation - Batch Number', 'value': 'operation_batch_number'},
-    {'label': 'Operation - Serial Number', 'value': 'operation_serial_number'}
+    {'label': 'Operation - Batch Number', 'value': 'SOP#'},
+    {'label': 'Operation - Serial Number', 'value': 'operation-serial_number'}
 ]
 
 app_layout = html.Div([
