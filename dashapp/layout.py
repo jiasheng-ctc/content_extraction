@@ -141,4 +141,5 @@ app_layout = html.Div([
 
     html.Div(id='output-div', style={'marginTop': '30px'}),
     html.Div(id='error-message', style={'color': 'red', 'fontWeight': 'bold', 'marginTop': '10px'}),
+    html.Div(id='processing-message', style={'color': 'blue', 'fontWeight': 'bold', 'marginTop': '20px', 'textAlign': 'center'}),
 ], style={**minimalist_style, 'backgroundColor': '#F5F5F5', 'padding': '30px', 'borderRadius': '10px'})

@@ -1,4 +1,3 @@
-import csv
 import os
 from rhubarb import DocAnalysis
 from src.models.model_params import model_params
@@ -9,97 +8,45 @@ logging.basicConfig(format='[%(levelname)s] %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 def process_pdf(file_path):
-    try:
-        session = boto3.Session(region_name=model_params["region"])
-        doc_analysis = DocAnalysis(
-            file_path=file_path,
-            boto3_session=session,
-            modelId=model_params["model_id"]
-        )
+   try:
+       base_output_dir = "/home/ubuntu/content_extraction/assets"
+       os.makedirs(base_output_dir, exist_ok=True)
 
-        logger.info("Processing the PDF file using Rhubarb...")
+       session = boto3.Session(region_name=model_params["region"])
+       doc_analysis = DocAnalysis(
+           file_path=file_path,
+           boto3_session=session,
+           modelId=model_params["model_id"]
+       )
 
-        summary_response = doc_analysis.run(
-            message=(
-                "Summarize this document briefly, including:" \
-                "\n- Contract or Reference Number" \
-                "\n- Service Hotline" \
-                "\n- Customer Name" \
-                "\n- Period" \
-                "\n- Main Contact Person" \
-                "\n- Email Address"
-            )
-        )
+       classification_response = doc_analysis.run(
+           message=(
+               "Classify this document into a department based on these keywords and context clues:\n"
+               "Finance: payroll, Pruchase order, PO Number, Contract No, invoice, budget, accounting, financial statement, expense, revenue, tax, salary, compensation, financial report, fiscal, procurement\n"
+               "HR: HR, Human resrouce, employee ID, SOP ID, employment, recruitment, onboarding, performance review, training, employee handbook, benefits, compensation, hiring, job description, workforce\n"
+               "Operation: logistics, batch no, serial no, supply chain, inventory, workflow, process, manufacturing, distribution, operations manual, production, service delivery, quality control\n"
+               "If the document does not clearly match any of these categories, mention the context clues.\n"
+               "Respond with ONLY the department name: HR, Finance, Operation, or Unknown."
+           )
+       )
 
-        masking_prompt = (
-            "Mask sensitive details in this document, including:" \
-            "\n- Contract or Reference Numbers" \
-            "\n- Personal Details" \
-            "\n- Any other identifiable or sensitive information. " \
-            "Replace sensitive information with appropriate placeholders."
-        )
-        masked_response = doc_analysis.run(message=masking_prompt)
+       department = classification_response.get("output", [{}])[0].get("content", "Unknown").strip()
+       
+       if department not in ["HR", "Finance", "Operation"]:
+           department = "Unknown"
 
-        logger.info("Summary of the Document:")
-        summary_content = format_summary_output(summary_response)
-        logger.info(summary_content)
+       dept_dir = os.path.join(base_output_dir, department)
+       os.makedirs(dept_dir, exist_ok=True)
 
-        logger.info("Masked Document:")
-        logger.info(format_masked_output(masked_response))
+       filename = os.path.basename(file_path)
+       destination_path = os.path.join(dept_dir, filename)
+       os.rename(file_path, destination_path)
 
-        csv_path = "/home/ubuntu/scanned-pdf-extraction/assets/examples/output_csv/summary_output.csv"
-        save_summary_to_csv(summary_response, csv_path)
+       return {
+           "Department": department,
+           "Destination Path": destination_path
+       }
 
-        return {
-            "Summary": summary_response,
-            "Masked Document": masked_response,
-        }
-
-    except Exception as e:
-        logger.error(f"Error processing PDF: {e}")
-        raise
-
-def format_summary_output(summary_response):
-    try:
-        summary = summary_response.get("output", [])
-        formatted_summary = []
-        for page_data in summary:
-            page = page_data.get("page", "Unknown Page")
-            content = page_data.get("content", "No content available")
-
-            for line in content.split("\n"):
-                if ": " in line:
-                    field, value = line.split(": ", 1)
-                    formatted_summary.append({"Page": page, "Field": field.strip(), "Value": value.strip()})
-                else:
-                    formatted_summary.append({"Page": page, "Field": "Unstructured Content", "Value": line.strip()})
-        return formatted_summary
-    except Exception as e:
-        logger.error(f"Failed to format summary output: {e}")
-        return []
-
-def format_masked_output(masked_response):
-    try:
-        masked = masked_response.get("output", [])
-        formatted_masked = []
-        for page_data in masked:
-            page = page_data.get("page", "Unknown Page")
-            content = page_data.get("content", "No content available")
-            formatted_masked.append(f"Page {page}:\n{content}")
-        return "\n\n".join(formatted_masked)
-    except Exception as e:
-        logger.error(f"Failed to format masked output: {e}")
-        return ""
-
-def save_summary_to_csv(summary_response, file_path):
-    try:
-        os.makedirs(os.path.dirname(file_path), exist_ok=True)
-        with open(file_path, mode="w", newline="") as csv_file:
-            csv_writer = csv.writer(csv_file)
-            csv_writer.writerow(["Page", "Field", "Value"])
-            formatted_summary = format_summary_output(summary_response)
-            for entry in formatted_summary:
-                csv_writer.writerow([entry["Page"], entry["Field"], entry["Value"]])
-    except Exception as e:
-        logger.error(f"Failed to save summary to CSV: {e}")
-        raise
+   except Exception as e:
+       logger.error(f"Error processing PDF: {e}")
+       raise
