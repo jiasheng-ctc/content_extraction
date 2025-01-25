@@ -31,6 +31,7 @@ def generate_file_list(files):
             }) for idx, file in enumerate(files)
     ]
 
+
 def register_callbacks(app):
     @app.callback(
         [Output('file-list', 'children'),
@@ -45,10 +46,12 @@ def register_callbacks(app):
         [State('uploaded-files-store', 'data'),
          State('hr-entity-dropdown', 'value'),
          State('finance-entity-dropdown', 'value'),
-         State('operation-entity-dropdown', 'value')],
+         State('operation-entity-dropdown', 'value'),
+         State('summarize-checklist', 'value'),
+         State('masking-checklist', 'value')],
         prevent_initial_call=True,
     )
-    def handle_callbacks(new_filenames, new_contents, delete_clicks, process_clicks, stored_files, hr_entity, finance_entity, operation_entity):
+    def handle_callbacks(new_filenames, new_contents, delete_clicks, process_clicks, stored_files, hr_entity, finance_entity, operation_entity, summarize, mask):
         logging.info(f"Triggered callback: {callback_context.triggered_id}")
         stored_files = stored_files or []
         error_message = ""
@@ -101,9 +104,9 @@ def register_callbacks(app):
                         with open(temp_path, "wb") as f:
                             f.write(pdf_bytes)
 
-                        result = process_pdf(temp_path, hr_entity, finance_entity, operation_entity)
+                        result = process_pdf(temp_path, hr_entity, finance_entity, operation_entity, 'summarize' in summarize, 'mask' in mask)
 
-                        if result["Status"] == "Document saved successfully":
+                        if result["Status"] == "Document, summary, and masked files saved successfully":
                             output.append(html.Div([
                                 html.P(f"File: {file['filename']} processed successfully."),
                                 html.P(f"Classified Department: {result['Department']}"),
@@ -111,7 +114,6 @@ def register_callbacks(app):
                         else:
                             output.append(html.Div([
                                 html.P(f"File: {file['filename']} was not saved."),
-                                # html.P(f"Reason: {result['Status']}")
                             ]))
                     except Exception as e:
                         output.append(html.Div([
