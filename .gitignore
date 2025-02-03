@@ -8,6 +8,8 @@ __pycache__/
 
 # Distribution / packaging
 .Python
+assets/
+temp_uploads/
 env/
 venv/
 ENV/

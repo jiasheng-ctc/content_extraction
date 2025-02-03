@@ -12,6 +12,7 @@ host = config['app'].get('host', '0.0.0.0')
 port = config['app'].get('port', 8050)
 
 app = Dash(__name__, external_stylesheets=external_stylesheet)
+app.title = 'GenAI - Content Extraction Demo'
 server = app.server
 
 app.layout = app_layout
