@@ -1,5 +1,5 @@
 import os
-from rhubarb import DocAnalysis, LanguageModels
+from rhubarb import DocAnalysis, LanguageModels, SystemPrompts
 from src.models.model_params import model_params
 import boto3
 import logging
@@ -36,7 +36,6 @@ def create_summary_pdf(summary_text, output_path):
                 c.showPage()
                 c.setFont("Helvetica", 10)
                 text_object = c.beginText(start_x, height - margin)
-
             text_object.textLine(line)
 
         c.drawText(text_object) 
@@ -52,9 +51,9 @@ def parse_response(response):
         if isinstance(response, str):
             logger.info(f"Parsing response as JSON string: {response[:100]}...")
             if response.startswith("```json"):
-                response = response.strip('```json').strip()  # Strip triple backticks and 'json'
+                response = response.strip('```json').strip() 
             response = json.loads(response)
-        elif isinstance(response, list):  # Sometimes the response might already be a list
+        elif isinstance(response, list):  
             return response
         elif not isinstance(response, (dict, list)):
             raise ValueError("Unexpected response type from doc_analysis")
@@ -63,6 +62,30 @@ def parse_response(response):
         logger.error(f"Failed to decode JSON from response: {response}")
         raise ValueError("Invalid response format from doc_analysis") from e
 
+def extract_text_from_response(resp, default="No content available."):
+    """
+    Helper function to extract text content from the response.
+    It handles cases where 'output' may be a list of dicts or a plain string.
+    """
+    if isinstance(resp, str):
+        return resp.strip()
+    elif isinstance(resp, dict):
+        out = resp.get("output", default)
+        if isinstance(out, list):
+            if out and isinstance(out[0], dict) and "content" in out[0]:
+                return out[0]["content"].strip()
+            elif out and isinstance(out[0], str):
+                return out[0].strip()
+            else:
+                return default
+        elif isinstance(out, str):
+            return out.strip()
+    elif isinstance(resp, list):
+        if resp and isinstance(resp[0], dict) and "content" in resp[0]:
+            return resp[0]["content"].strip()
+        elif resp and isinstance(resp[0], str):
+            return resp[0].strip()
+    return default
 
 def process_pdf(file_path, hr_entity, finance_entity, operation_entity, summarize, mask):
     try:
@@ -78,8 +101,8 @@ def process_pdf(file_path, hr_entity, finance_entity, operation_entity, summariz
 
         classification_message = (
             "Classify this document into a department based on these keywords and context clues:\n"
-            "Finance: payroll, purchase order, PO Number, Contract No, invoice, budget, accounting, "
-            "financial statement, expense, revenue, tax, salary, compensation, financial report, fiscal, procurement\n"
+            "Finance: payroll, PO Number, Contract No, invoice, budget, accounting, "
+            "financial statement, expense, revenue, tax, salary, compensation, financial report,  purchase order, fiscal, procurement\n"
             "HR: HR, Human resource, employee ID, SOP ID, employment, recruitment, onboarding, "
             "performance review, training, employee handbook, benefits, compensation, hiring, job description, workforce\n"
             "Operation: logistics, batch no, serial no, supply chain, inventory, workflow, process, manufacturing, "
@@ -134,15 +157,21 @@ def process_pdf(file_path, hr_entity, finance_entity, operation_entity, summariz
         doc_analysis = DocAnalysis(
             file_path=destination_path,
             boto3_session=session,
-            modelId=model_params["model_id"]
+            modelId=model_params["model_id"],
+            system_prompt=SystemPrompts().SummarySysPrompt
         )
 
         if summarize:
-            summary_message = "Summarize the content of this document with details. Highlight any important remarks such as urgent documents etc."
+            summary_message = (
+                "Provide a comprehensive summary of the document in clear, coherent sentences. If no such remarks ar"
+                "If no such remarks are found, do not include extra comments: Include key details and highlight any remarks indicating urgency / update or critical issues."
+                "If no such remarks are found, do not include extra comments: Also, note any handwritten annotations or remarks present in the document."
+                "If no such remarks are found, do not include extra comments: If any SOP checkbox is marked as 'No', please emphasize this in your summary, and make some inference. "
+            )
             summary_response = doc_analysis.run(message=summary_message)
             logger.info(f"Raw summary response: {summary_response}")
             summary_response = parse_response(summary_response)
-            summary_text = summary_response.get("output", [{}])[0].get("content", "No summary available.").strip()
+            summary_text = extract_text_from_response(summary_response, default="No summary available.")
 
             summary_filename = f"{extracted_entity}_summary.pdf"
             summary_destination_path = os.path.join(dept_dir, summary_filename)
@@ -154,7 +183,7 @@ def process_pdf(file_path, hr_entity, finance_entity, operation_entity, summariz
                 "Mask sensitive details in this document, including:"
                 "\n- Contract or Reference Numbers"
                 "\n- Personal Details, address or contact details."
-                "\n- Any other identifiable or sensitive information. "
+                "\n- Any other identifiable or sensitive information."
                 "Replace sensitive information with appropriate placeholders."
             )
             masked_response = doc_analysis.run(message=masking_prompt)
@@ -163,16 +192,7 @@ def process_pdf(file_path, hr_entity, finance_entity, operation_entity, summariz
 
             if isinstance(masked_response, str) and masked_response.startswith("```json"):
                 masked_response = parse_response(masked_response.strip("```json").strip())
-            
-            if isinstance(masked_response, list):
-                masked_text = "\n\n".join(item.get("content", "No masked content available.").strip() for item in masked_response)
-            elif isinstance(masked_response, dict) and "output" in masked_response:
-                masked_text = "\n\n".join(
-                    item.get("content", "No masked content available.").strip()
-                    for item in masked_response.get("output", [])
-                )
-            else:
-                masked_text = "No masked content available."
+            masked_text = extract_text_from_response(masked_response, default="No masked content available.")
 
             masked_filename = f"{extracted_entity}_masked.pdf"
             masked_destination_path = os.path.join(dept_dir, masked_filename)
